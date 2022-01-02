@@ -1,24 +1,31 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import Dicebox from './components/dicebox';
+import Enemy from './components/enemy';
+import Healthbar from './components/healthbar';
+import Log from './components/log';
+import Spellcard from './components/spellcard';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="main-container">
+      <div className="enemy-field">
+        <Enemy />
+        <Enemy />
+        <Enemy />
+        <Enemy />
+      </div>
+      <div className="log-field">
+        <Log />
+      </div>
+      <div className="player-field">
+        <Healthbar />
+        <Dicebox />
+        <Spellcard />
+        <Spellcard />
+        <Spellcard />
+        <Spellcard />
+      </div>
     </div>
   );
 }
