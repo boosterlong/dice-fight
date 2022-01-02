@@ -87,7 +87,7 @@
   height: 100%;
   background-color: red;
 }
-ul { 
+ul {
   display: flex;
   flex-direction: column-reverse;
 }
@@ -117,4 +117,46 @@ html {
     background-size: 100% 2px, 3px 100%;
     pointer-events: none;
   }
-  
+
+
+.spell-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column-gap: 5px;
+}
+
+.spell-card {
+  border: 1px solid #333;
+  padding: 0.25em;
+  border-radius: 5px;
+  transition: background-color 0.25s linear;
+  cursor: pointer;
+}
+
+.spell-card.coolingdown {
+  cursor: not-allowed;
+}
+
+.spell-card.casting {
+  cursor: wait;
+}
+
+.spell-card h6 {
+  margin: 0px;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.spell-card .cooldown {
+  font-size: 0.9em;
+  color: #ccc;
+}
+
+.spell-card.spell-fireball.casting {
+  background: red;
+}
+
+.spell-card.spell-frost_shield.casting {
+  background: cyan;
+  color: black;
+}

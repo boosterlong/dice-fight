@@ -4,6 +4,7 @@ import Dicebox from './components/dicebox';
 import Enemy from './components/enemy';
 import Healthbar from './components/healthbar';
 import Log from './components/log';
+<<<<<<< HEAD
 import Spellcard from './components/spellcard';
 <<<<<<< HEAD
 <style>
@@ -13,6 +14,10 @@ import Spellcard from './components/spellcard';
 =======
 import GameContext from "./context/gameContext";
 >>>>>>> Added a basic game context
+=======
+import GameContext from "./context/gameContext";
+import SpellList from "./components/spelllist";
+>>>>>>> Game context and spell list
 
 function App() {
 
@@ -51,10 +56,7 @@ function App() {
       <div className="player-field">
         <Healthbar />
         <Dicebox />
-        <Spellcard />
-        <Spellcard />
-        <Spellcard />
-        <Spellcard />
+        <SpellList />
       </div>
 >>>>>>> Added a basic game context
     </div>
