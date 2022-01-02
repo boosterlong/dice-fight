@@ -1,5 +1,10 @@
 import {Game, Spell, SpellKey} from "../../types/game";
-import {getRandomLiveEnemy, getRandomLiveEnemyIdx, getRandomLiveMostDamagedEnemy} from "../../lib/game";
+import {
+	getRandomLiveEnemy,
+	getRandomLiveEnemyIdx,
+	getRandomLiveMostDamagedEnemy,
+	getRandomLiveMostShieldEnemy
+} from "../../lib/game";
 import {rndDice} from "../../lib/rand";
 import {dealDamage} from "../../lib/combatants";
 
@@ -14,7 +19,7 @@ const Fireball : Spell = {
 	},
 	cast: (game: Game) => {
 		const [enemy, idx] = getRandomLiveEnemy(game)
-		if (idx === -1) {
+		if (!enemy) {
 			return game
 		}
 
@@ -37,6 +42,29 @@ const FrostShield : Spell = {
 		return game
 	}
 }
+const SoulSap : Spell = {
+	name: 'Soul Sap',
+	description: `Steal d6 shield from enemy with most shields`,
+	castTime: 1000,
+	cooldown: 0,
+	manaCost: {
+		chaos: 2,
+		lightning: 1,
+	},
+	cast: (game: Game) => {
+		const [enemy, _] = getRandomLiveMostShieldEnemy(game)
+		console.log('enemy', enemy)
+		if (!enemy) {
+			return game
+		}
+		const [steal, results] = rndDice(1, 6)
+		console.log('steal', steal)
+		const stolen = Math.min(enemy.shield, steal)
+		enemy.shield -= stolen
+		game.player.shield += stolen
+		return game
+	}
+}
 
 const LightningStrike : Spell = {
 	name: 'Lightning Strike',
@@ -49,7 +77,7 @@ const LightningStrike : Spell = {
 	},
 	cast: (game: Game) => {
 		const [enemy, idx] = getRandomLiveMostDamagedEnemy(game)
-		if (idx === -1) {
+		if (!enemy) {
 			return game
 		}
 
@@ -64,4 +92,5 @@ export const SpellLibrary : Record<SpellKey, Spell> = {
 	fireball: Fireball,
 	frost_shield: FrostShield,
 	lightning_strike: LightningStrike,
+	soul_sap: SoulSap,
 }

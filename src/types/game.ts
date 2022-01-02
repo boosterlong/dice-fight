@@ -21,7 +21,7 @@ export type Combatant = {
 	shield: number
 }
 
-export type SpellKey = 'fireball' | 'frost_shield' | 'lightning_strike'
+export type SpellKey = 'fireball' | 'frost_shield' | 'lightning_strike' | 'soul_sap'
 
 export type Spell = {
 	name: string

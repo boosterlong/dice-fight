@@ -7,6 +7,7 @@ import SpellList from "./components/SpellList";
 import EnemyList from "./components/EnemyList";
 import ManaDiceBox from "./components/ManaDiceBox";
 import EndTurnButton from "./components/EndTurnButton";
+import PlayerHealthBar from "./components/PlayerHealthBar";
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
@@ -22,7 +23,7 @@ function App() {
         <Log />
       </div>
       <div className="player-field">
-        <Healthbar current={50} max={200} />
+        <PlayerHealthBar />
         <ManaDiceBox />
         <SpellList />
         <EndTurnButton />

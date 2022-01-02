@@ -1,12 +1,12 @@
 import {Combatant, Game, SpellInstance, SpellKey} from "../types/game";
 import React, {useRef, useState} from "react";
-import {timeout} from "../lib/helpers";
+import {deductMana, timeout} from "../lib/helpers";
 import {SpellLibrary} from "../game/spells/spells";
 import {Enemy} from "../types/enemies";
 import {newSkeleton} from "../game/enemies/enemies";
 import {ManaDie, ManaDieFace, ManaPool, ManaType} from "../types/mana-dice";
 import {rndInt} from "../lib/rand";
-import {deductMana, hasMana} from "../lib/spells";
+import {deductSpellMana, hasMana} from "../lib/spells";
 import {useStateRef} from "../lib/use-state-ref";
 
 type GameContext = {
@@ -96,6 +96,11 @@ function defaultGameContext () : Game {
 				key: 'lightning_strike',
 				cooldown: 0,
 				casting: false,
+			},
+			{
+				key: 'soul_sap',
+				cooldown: 0,
+				casting: false,
 			}
 		]
 	}
@@ -165,24 +170,22 @@ export const GameProvider : React.FC = ({children}) => {
 		copy[idx].cooldown = instance.cooldown === 0 ? 0 : instance.cooldown - 1
 		copy[idx].casting = true
 		setSpells(copy)
-		deductMana(mana, st)
+		deductSpellMana(mana, st)
 		setMana({...mana})
 
 		// Each spell has its own cast function that will change the game state
-		console.log('curr enemies', JSON.stringify(enemies))
 		const gameCopy = JSON.parse(JSON.stringify(game))
 		const newGame = st.cast(gameCopy)
-		console.log('curr enemies right after', JSON.stringify(enemies))
-		console.log('gameCopy enemies right after', JSON.stringify(gameCopy.enemies))
-		console.log('newGame enemies right after', JSON.stringify(newGame.enemies))
 
-		console.log('waiting for cast time')
 		await timeout(st.castTime)
-		console.log('done waiting')
 
 		// Update enemies from new game
-		console.log('update enemy', JSON.stringify(newGame.enemies))
 		setEnemies([...newGame.enemies])
+
+		// Player may have changed HP or shield
+		setPlayer({
+			...newGame.player
+		})
 
 		// Update all the spells again
 		const newCopy = [...copy]
@@ -255,7 +258,7 @@ export const GameProvider : React.FC = ({children}) => {
 			return
 		}
 		lockInteractionRef.current = true
-		setRerolls(rerolls-1)
+		setRerolls(rerollsRef.current-1)
 		// Make them roll
 		const copy = [...manaDiceRef.current]
 		copy.forEach((c) => {
@@ -289,7 +292,16 @@ export const GameProvider : React.FC = ({children}) => {
 		}
 		unlockAllDice()
 		setPhase('rolling')
-		setRerolls(DEFAULT_REROLLS)
+
+		// You lose half your mana each turn
+		deductMana(mana, {
+			cold: Math.ceil(mana.cold/2),
+			lightning: Math.ceil(mana.lightning/2),
+			chaos: Math.ceil(mana.chaos/2),
+			fire: Math.ceil(mana.fire/2),
+		})
+
+		setRerolls(DEFAULT_REROLLS+1) // Give you +1 since you're gonna lose another one in rollManaDice
 		rollManaDice(true)
 	}
 
