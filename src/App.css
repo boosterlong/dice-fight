@@ -1,14 +1,16 @@
+
+
 /* General CSS Classes */
 
 
 .main-container {
-  font-family:monospace;
-  font-size: 20px;
-  margin: 0 auto;
-  width: 600px;
-  height: 800px;
-  border: 1px solid black;
-  box-shadow: 3px 3px 8px black;
+    font-family:monospace;
+    font-size: 20px;
+    margin: 0 auto;
+    width: 600px;
+    height: 800px;
+    border: 4px solid white;
+    box-shadow: 3px 3px 8px black;
 }
 
 .section {
@@ -16,7 +18,7 @@
   padding:5px;
   background-color: black;
   color: white;
-  border: 1px solid white;
+  border: 4px solid white;
 }
 
 .enemy-field {
@@ -93,27 +95,26 @@ li {
   flex: 0 0 auto;
 }
 
-/*
-#6F00FF is the purple
-#FF6F00 is the orange
-#00FF6F is the teal
-*/
-
 
 html {
   /*minty background*/
   height: 100%;
-  background-color: rgba(0, 190, 47, 0.103);
+  background-color: black;
 }
 
-/*
 
-  Fake scanlines in case we want a dope retro vibe.
 
-  background:
-    url('data:image/svg+xml;utf8,<svg viewBox="0 0 3 3" xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1" /></svg>') 0   0  /3px 3px,
-    url('data:image/svg+xml;utf8,<svg viewBox="0 0 3 3" xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1" /></svg>') 1px 1px/3px 3px,
-    url('data:image/svg+xml;utf8,<svg viewBox="0 0 3 3" xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1" /></svg>') 2px 2px/3px 3px,
-    url(https://i.picsum.photos/id/102/800/800.jpg) center/cover;
-
-*/
+.crt::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 2;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+  }
+  
