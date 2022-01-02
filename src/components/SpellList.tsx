@@ -1,6 +1,6 @@
 import {useContext} from "react";
 import {GameContext} from "../context/gameContext";
-import Spellcard from "./spellcard";
+import SpellCard from "./SpellCard";
 import {SpellInstance} from "../types/game";
 
 export default function SpellList () {
@@ -10,7 +10,7 @@ export default function SpellList () {
 
 	return <div className={"spell-list"}>
 		{spells.map((spell : SpellInstance, idx: number) => {
-			return <Spellcard spell={spell} idx={idx} key={idx} />
+			return <SpellCard spell={spell} idx={idx} key={idx} />
 		})}
 	</div>
 }

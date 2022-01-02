@@ -6,7 +6,8 @@ import {
 	getRandomLiveMostShieldEnemy
 } from "../../lib/game";
 import {rndDice} from "../../lib/rand";
-import {dealDamage} from "../../lib/combatants";
+import {dealDamage, healCombatant} from "../../lib/combatants";
+import {deductMana} from "../../lib/helpers";
 
 const Fireball : Spell = {
 	name: 'Fireball',
@@ -31,7 +32,7 @@ const Fireball : Spell = {
 
 const FrostShield : Spell = {
 	name: 'Frost Shield',
-	description: `Gain 6 shield`,
+	description: `Gain 6 shield. Spend 1 Fire: Heal 1d4`,
 	castTime: 1000,
 	cooldown: 0,
 	manaCost: {
@@ -39,6 +40,13 @@ const FrostShield : Spell = {
 	},
 	cast: (game: Game) => {
 		game.player.shield += 6
+
+		if (game.mana.fire > 0) {
+			const [roll] = rndDice(1, 4)
+			healCombatant(game.player, roll)
+			deductMana(game.mana, {fire: 1})
+		}
+
 		return game
 	}
 }
@@ -68,11 +76,12 @@ const SoulSap : Spell = {
 
 const LightningStrike : Spell = {
 	name: 'Lightning Strike',
-	description: `Deal 1d20 damage to the most damaged enemy`,
+	description: `Deal 1d20 damage to the most damaged enemy. 
+Expend Lightning: Gain 1 advantage per mana spent`,
 	castTime: 1000,
 	cooldown: 0,
 	manaCost: {
-		lightning: 2,
+		lightning: 1,
 		cold: 1,
 	},
 	cast: (game: Game) => {
@@ -81,9 +90,22 @@ const LightningStrike : Spell = {
 			return game
 		}
 
-		const [dmg, results] = rndDice(1, 20)
-		console.log(`LIS: ${dmg} ${enemy}`)
-		dealDamage(enemy, dmg)
+		const lMana = game.mana.lightning
+		const rolls = lMana
+		let max = 0
+		for (let i = 1; i <= rolls; i++) {
+			const [dmg, results] = rndDice(1, 20)
+			console.log(`LIS: ${dmg} ${enemy}`)
+			if (dmg > max) {
+				max = dmg
+			}
+		}
+		console.log(`Rolled ${rolls} times. Total dmg: ${max}`)
+		dealDamage(enemy, max)
+
+		// Deduct the excess mana that was used for rerolls.
+		deductMana(game.mana, {lightning: lMana - 1})
+
 		return game
 	}
 }

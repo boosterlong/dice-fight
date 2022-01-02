@@ -12,6 +12,7 @@ export type Game = {
 	manaDice: ManaDie[]
 	rerolls: number,
 	mana: Record<ManaType, number>
+	logs: string[]
 }
 
 export type Combatant = {

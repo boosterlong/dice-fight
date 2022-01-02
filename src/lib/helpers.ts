@@ -17,3 +17,18 @@ export function deductMana (mana: ManaPool, costs: Partial<ManaPool>) {
 		mana[mType] = Math.max(0, mana[mType])
 	}
 }
+
+// ["blue", "red", "green"] => blue, red, and green
+export function commaAndJoin (pieces: string[]) : string {
+	if (pieces.length <= 2) {
+		return pieces.join(' and ')
+	}
+
+	let last = pieces.pop()
+
+	return pieces.join(', ') + ', and ' + last
+}
+
+export function titleCase (str: string) : string {
+	return str.toUpperCase().substr(0, 1) + str.toLowerCase().substr(1)
+}

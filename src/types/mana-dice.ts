@@ -15,6 +15,7 @@ export type ManaDie = {
 
 export type ManaDieFace = {
 	type: null | ManaType
+	shield?: number
 }
 
 export type ManaPool = Record<ManaType, number>

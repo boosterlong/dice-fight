@@ -9,7 +9,13 @@ type SpellCardProps = {
 	spell: SpellInstance
 	idx: number
 }
-export default function Spellcard({spell, idx} : SpellCardProps) {
+
+type SpendableMana = {
+	type: ManaType
+	spendable: boolean
+}
+
+export default function SpellCard({spell, idx} : SpellCardProps) {
 	const {actions, state} = useContext(GameContext)
 	const spellType = SpellLibrary[spell.key]
 
@@ -17,14 +23,28 @@ export default function Spellcard({spell, idx} : SpellCardProps) {
 		actions.castSpell(idx)
 	}
 
-	const manaIcons : ManaType[] = []
+	const manaIcons : SpendableMana[] = []
+	const spendableMana = {
+		...state.mana
+	}
+
 	for (let key in spellType.manaCost) {
 		const kType = key as ManaType
 		const num = spellType.manaCost[kType] || 0
 		for (let i = 1; i <= num; i++) {
-			manaIcons.push(kType)
+			manaIcons.push({
+				type: kType,
+				spendable: spendableMana[kType] > 0,
+			})
+			spendableMana[kType]--
 		}
 	}
+	manaIcons.sort((a, b) => {
+		if (a.type === b.type) {
+			return a.spendable ? 1 : -1
+		}
+		return 0
+	})
 
 	const classes = ['spell-card', 'spell-' + spell.key]
 	if (spell.cooldown) {
@@ -42,10 +62,11 @@ export default function Spellcard({spell, idx} : SpellCardProps) {
 			<div className={"spell-header"}>
 				<h6>{spellType.name}</h6>
 				<div className={"spell-cost"}>
-					{manaIcons.map((x, i) => <span key={i} className={"mana-cost-icon mana-" + x} />)}
+					{manaIcons.map((x, i) => {
+						return <span key={i} className={"mana-cost-icon mana-" + x.type + ' ' + (x.spendable ? 'spendable' : 'unspendable')} />
+					})}
 				</div>
 			</div>
-			<div className={"cooldown"}>{spell.cooldown ? <>Cooldown: {spell.cooldown}</> : <>Ready!</>}</div>
 			<div className={"description"}>{spellType.description}</div>
 		</div>
 	)

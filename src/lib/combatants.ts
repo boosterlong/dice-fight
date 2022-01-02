@@ -16,3 +16,14 @@ export function dealDamage (c: Combatant, dmg: number) {
 		c.currentHP = 0
 	}
 }
+
+export function healCombatant (c: Combatant, heal: number) {
+	c.currentHP += heal
+	if (c.currentHP > c.maxHP) {
+		c.currentHP = c.maxHP
+	}
+}
+
+export function isDead (c: Combatant) : boolean {
+	return c.currentHP <= 0
+}

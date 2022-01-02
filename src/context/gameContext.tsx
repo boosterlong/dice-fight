@@ -1,6 +1,6 @@
-import {Combatant, Game, SpellInstance, SpellKey} from "../types/game";
+import {Combatant, Game, GamePhase, SpellInstance, SpellKey} from "../types/game";
 import React, {useRef, useState} from "react";
-import {deductMana, timeout} from "../lib/helpers";
+import {commaAndJoin, deductMana, timeout} from "../lib/helpers";
 import {SpellLibrary} from "../game/spells/spells";
 import {Enemy} from "../types/enemies";
 import {newSkeleton} from "../game/enemies/enemies";
@@ -8,6 +8,7 @@ import {ManaDie, ManaDieFace, ManaPool, ManaType} from "../types/mana-dice";
 import {rndInt} from "../lib/rand";
 import {deductSpellMana, hasMana} from "../lib/spells";
 import {useStateRef} from "../lib/use-state-ref";
+import {isDead} from "../lib/combatants";
 
 type GameContext = {
 	state: Game,
@@ -53,11 +54,17 @@ function newManaDie (manas: string) : ManaDie {
 	}
 }
 
+const lastDie = newManaDie('lightning,cold,fire')
+lastDie.faces[3].shield = 2
+lastDie.faces[4].shield = 3
+lastDie.faces[5].shield = 4
+
+
 const manaDice : ManaDie[] = [
 	newManaDie('fire,fire,fire,lightning,cold,chaos'),
 	newManaDie('lightning,lightning,lightning,fire,cold,chaos'),
 	newManaDie('cold,cold,cold,lightning,fire,chaos'),
-	newManaDie('lightning,cold,fire'),
+	lastDie,
 ]
 
 const DEFAULT_REROLLS = 3
@@ -69,7 +76,7 @@ function defaultGameContext () : Game {
 		rerolls: DEFAULT_REROLLS,
 		player: {
 			name: 'Miles',
-			currentHP: 25,
+			currentHP: 20,
 			maxHP: 25,
 			shield: 0,
 		},
@@ -102,7 +109,8 @@ function defaultGameContext () : Game {
 				cooldown: 0,
 				casting: false,
 			}
-		]
+		],
+		logs: [],
 	}
 }
 
@@ -120,13 +128,14 @@ export const GameContext = React.createContext<GameContext>({
 export const GameProvider : React.FC = ({children}) => {
 	const defaultGame = defaultGameContext()
 	const [round, setRound] = useState(defaultGame.round)
-	const [phase, setPhase, phaseRef] = useStateRef(defaultGame.phase)
+	const [phase, setPhase, phaseRef] = useStateRef<GamePhase>(defaultGame.phase)
 	const [spells, setSpells] = useState<SpellInstance[]>(defaultGame.spells)
 	const [enemies, setEnemies] = useState<Enemy[]>(defaultGame.enemies)
 	const [player, setPlayer] = useState<Combatant>(defaultGame.player)
 	const [manaDice, setManaDice, manaDiceRef] = useStateRef<ManaDie[]>(defaultGame.manaDice)
 	const [mana, setMana] = useState<ManaPool>(defaultGame.mana)
 	const [rerolls, setRerolls, rerollsRef] = useStateRef(defaultGame.rerolls)
+	const [logs, setLogs, logsRef] = useStateRef(defaultGame.logs)
 
 	const game = {
 		round,
@@ -137,13 +146,20 @@ export const GameProvider : React.FC = ({children}) => {
 		enemies,
 		manaDice,
 		rerolls,
+		logs,
 	}
 
 	// If this value is true, we don't let the player do anything
 	// we lock things while we let animations show and the like
 	const lockInteractionRef = useRef(false)
 
-	async function castSpell(idx: number) {
+	function addLog (msg: string) {
+		const copy = [...logsRef.current]
+		copy.unshift(msg)
+		setLogs(copy)
+	}
+
+	async function castSpell (idx: number) {
 		if (lockInteractionRef.current) {
 			return
 		}
@@ -162,20 +178,20 @@ export const GameProvider : React.FC = ({children}) => {
 		if (instance.cooldown > 0) {
 			return
 		}
-		// TODO: Check for valid target maybe?
-
 		lockInteractionRef.current = true
 
 		const copy = [...spells]
 		copy[idx].cooldown = instance.cooldown === 0 ? 0 : instance.cooldown - 1
 		copy[idx].casting = true
 		setSpells(copy)
-		deductSpellMana(mana, st)
-		setMana({...mana})
 
 		// Each spell has its own cast function that will change the game state
+		// TODO: Do something better than this. This is JSON stuff is nooby.
 		const gameCopy = JSON.parse(JSON.stringify(game))
 		const newGame = st.cast(gameCopy)
+		deductSpellMana(newGame.mana, st)
+		setMana({...newGame.mana})
+		addLog(`You cast ${st.name}`)
 
 		await timeout(st.castTime)
 
@@ -224,6 +240,7 @@ export const GameProvider : React.FC = ({children}) => {
 			return
 		}
 		const manaResult : Partial<ManaPool> = {}
+		const shieldBefore = player.shield
 		manaDice.forEach((m) => {
 			const mt = m.faces[m.shownFaceIdx]
 			if (mt.type) {
@@ -231,15 +248,27 @@ export const GameProvider : React.FC = ({children}) => {
 				//@ts-ignore
 				manaResult[mt.type]++
 			}
+			if (mt.shield) {
+				player.shield += mt.shield
+			}
 		})
+
+		let manaGained = []
 
 		for (let key in manaResult) {
 			const kType = key as ManaType
 			const num = manaResult[kType]
 			// @ts-ignore
 			mana[kType] += manaResult[kType]
+			manaGained.push(`+${manaResult[kType]} ${kType}`)
 		}
 
+		let msg = `You gained ` + commaAndJoin(manaGained) + ' mana'
+		const diff = player.shield - shieldBefore
+		if (diff > 0) {
+			msg += ', and +' + (diff) + ' Shield'
+		}
+		addLog(msg)
 		setMana({
 			...mana
 		})
@@ -286,12 +315,40 @@ export const GameProvider : React.FC = ({children}) => {
 		lockInteractionRef.current = false
 	}
 
-	function endTurn () {
-		if (phase === 'rolling') {
+	async function endTurn () {
+		if (phase !== 'actions') {
 			return
 		}
-		unlockAllDice()
+		await enemyTurn()
+		await newRound()
+	}
+
+	async function enemyTurn () {
+		lockInteractionRef.current = true
+		setPhase('enemies')
+		for (let i = 0; i < enemies.length; i++) {
+			const copy = [...enemies]
+			if (isDead(copy[i])) {
+				continue
+			}
+			copy[i].acting = true
+			setEnemies(copy)
+			await timeout(1000)
+			copy[i].acting = false
+			setEnemies([...copy])
+		}
+		await timeout(3000)
+	}
+
+	async function newRound () {
 		setPhase('rolling')
+		unlockAllDice()
+
+		// You lose all your shields
+		setPlayer({
+			...player,
+			shield: 0,
+		})
 
 		// You lose half your mana each turn
 		deductMana(mana, {

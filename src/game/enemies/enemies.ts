@@ -5,6 +5,7 @@ export function newSkeleton () : Enemy {
 		name: 'Skeleton',
 		currentHP: 10,
 		maxHP: 10,
+		acting: false,
 		moveset: 'skeleton',
 		shield: 0,
 		currentMoveIdx: -1,

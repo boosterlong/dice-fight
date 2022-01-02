@@ -6,13 +6,24 @@
 	user-select: none;
 }
 
+body, html {
+	height: 100%;
+}
+
+#root {
+	height: 100%;
+}
+
 .main-container {
 	font-family:monospace;
 	font-size: 20px;
 	margin: 0 auto;
-	width: 600px;
+	max-width: 600px;
 	border: 4px solid white;
 	box-shadow: 3px 3px 8px black;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
 }
 
 .section {
@@ -27,9 +38,9 @@
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-around;
-	height: 40%;
 	background-color: black;
 	width: 100%;
+	flex: 0 0 280px;
 }
 
 .enemy.dead {
@@ -37,23 +48,24 @@
 }
 
 .enemy-field .enemy {
-	width: 49%;
+	width: 100%;
 	margin: 0 0 5px 0;
 	display: block;
 }
 
 .log-field {
-	height: 20%;
 	background-color: rgba(255, 255, 255);
 	overflow:auto;
+	flex: 1;
 }
 
 .player-field {
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column;
+	justify-content: flex-end;
 	color: white;
 	background-color: rgb(0, 0, 0);
-	height: 40%;
+	flex: 0 0 480px;
 }
 
 /* Boxes */
@@ -109,6 +121,12 @@
 	opacity: 0;
 }
 
+.mana-die-shield {
+	color: wheat;
+	font-size: 0.9em;
+	text-align: center;
+}
+
 .healthbar-empty {
 	width: 100%;
 	height: 100%;
@@ -121,14 +139,10 @@
 	transition: width 0.15s linear;
 }
 
-ul {
-	display: flex;
-	flex-direction: column-reverse;
+ol, ul {
+	margin: 0;
+	padding: 0;
 }
-li {
-	flex: 0 0 auto;
-}
-
 
 html {
 	/*minty background*/
@@ -164,10 +178,24 @@ html {
 	transition: background-color 0.25s linear;
 	cursor: pointer;
 	margin: 0px 5px 5px 5px;
+	height: 90px;
+}
+
+.spell-card .description {
+	font-size: 12px;
+	line-height: 1.4;
 }
 
 .spell-card.coolingdown {
 	cursor: not-allowed;
+}
+
+.spell-card h6 {
+	color: #333333;
+}
+
+.spell-card.has-mana h6 {
+	color: white;
 }
 
 .spell-card.casting {
@@ -176,18 +204,23 @@ html {
 
 .spell-header {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 1fr 60px;
 }
 
 .spell-cost {
 	display: flex;
 	justify-content: flex-end;
+	padding-top: 5px;
 }
 
 .spell-cost .mana-cost-icon.mana-lightning {
 	width: 8px;
 	height: 8px;
 	margin-top: 1px;
+}
+
+.spell-cost .mana-cost-icon.unspendable {
+	opacity: 0.25;
 }
 
 .mana-cost-icon {
@@ -213,7 +246,7 @@ h6 {
 }
 
 .spell-card.spell-frost_shield.casting {
-	background: cyan;
+	background: darkcyan;
 	color: black;
 }
 

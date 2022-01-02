@@ -26,7 +26,6 @@ function App() {
         <PlayerHealthBar />
         <ManaDiceBox />
         <SpellList />
-        <EndTurnButton />
       </div>
     </div>
   </GameContext>
