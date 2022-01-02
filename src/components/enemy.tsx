@@ -1,6 +1,12 @@
+import Healthbar from "./healthbar";
+
 export default function Enemy(props:any) {
 
     return (
-        <><div className="section half-box big-box">This is a Monster.</div></>
+        <>
+        <div className="section half-box big-box">
+        <Healthbar />
+        </div>
+        </>
     )
 }
