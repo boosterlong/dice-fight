@@ -1,7 +1,10 @@
 
 
 /* General CSS Classes */
-
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
 
 .main-container {
     font-family:monospace;
@@ -22,11 +25,22 @@
 }
 
 .enemy-field {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  height: 40%;
-  background-color: black;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    height: 40%;
+    background-color: black;
+    width: 100%;
+}
+
+.enemy.dead {
+    opacity: 0.7;
+}
+
+.enemy-field .enemy {
+    width: 49%;
+    margin: 0 0 5px 0;
+    display: block;
 }
 
 .log-field {
@@ -102,8 +116,6 @@ html {
   background-color: black;
 }
 
-
-
 .crt::before {
     content: " ";
     display: block;
@@ -141,7 +153,7 @@ html {
   cursor: wait;
 }
 
-.spell-card h6 {
+h6 {
   margin: 0px;
   font-size: 1.1em;
   font-weight: bold;

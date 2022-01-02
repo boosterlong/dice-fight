@@ -1,11 +1,19 @@
 import Healthbar from "./healthbar";
+import {Enemy as IEnemy} from "../types/enemies";
 
-export default function Enemy(props:any) {
+type EnemyProps = {
+    enemy: IEnemy
+    idx: number
+}
+
+export default function CEnemy({enemy}:EnemyProps) {
 
     return (
         <>
-        <div className="section half-box big-box">
-        <Healthbar />
+        <div className={"enemy section " + (enemy.currentHP <= 0 ? ' dead ' : '')}>
+            <h6>{enemy.name}</h6>
+            <div>Shield: {enemy.shield}</div>
+            <Healthbar current={enemy.currentHP} max={enemy.maxHP} />
         </div>
         </>
     )

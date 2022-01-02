@@ -2,6 +2,8 @@ import {Game, SpellInstance, SpellKey} from "../types/game";
 import React, {useRef, useState} from "react";
 import {timeout} from "../lib/helpers";
 import {SpellLibrary} from "../game/spells/spells";
+import {Enemy} from "../types/enemies";
+import {newSkeleton} from "../game/enemies/enemies";
 
 type GameContext = {
 	state: Game,
@@ -12,10 +14,19 @@ type GameContext = {
 	}
 }
 
+const enemies = [
+	newSkeleton(),
+	newSkeleton(),
+	newSkeleton(),
+]
+
+enemies[1].shield = 10;
+
 function defaultGameContext () : Game {
 	return {
 		round: 1,
 		playerName: 'Miles',
+		enemies: enemies,
 		spells: [
 			{
 				key: 'fireball',
@@ -45,6 +56,14 @@ export const GameProvider : React.FC = ({children}) => {
 	const [round, setRound] = useState(defaultGame.round)
 	const [playerName, setPlayerName] = useState<string>(defaultGame.playerName)
 	const [spells, setSpells] = useState<SpellInstance[]>(defaultGame.spells)
+	const [enemies, setEnemies] = useState<Enemy[]>(defaultGame.enemies)
+
+	const game = {
+		round,
+		playerName,
+		spells,
+		enemies,
+	}
 
 	const lockRefs = useRef({
 		changeName: false,
@@ -85,7 +104,9 @@ export const GameProvider : React.FC = ({children}) => {
 		copy[idx].casting = true
 		setSpells(copy)
 
-		await timeout(st.castTime)
+		const newGame = st.cast(game)
+
+		setEnemies([...newGame.enemies])
 
 		const newCopy = [...copy]
 		newCopy[idx].cooldown = st.cooldown
@@ -99,11 +120,7 @@ export const GameProvider : React.FC = ({children}) => {
 	}
 
 	const provided = {
-		state: {
-			round,
-			playerName,
-			spells,
-		},
+		state: game,
 		actions: {
 			refreshName,
 			nextRound,
