@@ -41,15 +41,20 @@ body, html {
 	background-color: black;
 	width: 100%;
 	flex: 0 0 280px;
+	padding: 5px;
 }
 
 .enemy.dead {
 	opacity: 0.7;
 }
 
+.enemy.acting {
+	border-color: red;
+}
+
 .enemy-field .enemy {
 	width: 100%;
-	margin: 0 0 5px 0;
+	margin: 0 3px 5px 3px;
 	display: block;
 }
 
@@ -100,6 +105,7 @@ body, html {
 	width: 100%;
 	border: 1px solid black;
 	position: relative;
+	margin: 4px 0;
 }
 
 .shield {

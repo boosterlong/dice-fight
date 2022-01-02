@@ -6,8 +6,8 @@ export default function Logs () {
 	const {logs} = state
 	return <div>
 		<ol>
-			{logs.map((log) => {
-				return <li>{log}</li>
+			{logs.map((log, idx) => {
+				return <li key={idx}>{log}</li>
 			})}
 		</ol>
 	</div>

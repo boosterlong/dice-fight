@@ -1,5 +1,5 @@
 import {ManaPool, ManaType} from "../types/mana-dice";
-import {Spell} from "../types/game";
+import {Skill} from "../types/game";
 
 export async function timeout (ms: number) {
 	return new Promise((res) => {

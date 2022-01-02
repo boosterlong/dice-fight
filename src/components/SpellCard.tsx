@@ -1,5 +1,5 @@
 import {SpellInstance} from "../types/game";
-import {SpellLibrary} from "../game/spells/spells";
+import {SkillLibrary} from "../game/skills/skills";
 import {useContext} from "react";
 import {GameContext} from "../context/gameContext";
 import {ManaType} from "../types/mana-dice";
@@ -17,10 +17,10 @@ type SpendableMana = {
 
 export default function SpellCard({spell, idx} : SpellCardProps) {
 	const {actions, state} = useContext(GameContext)
-	const spellType = SpellLibrary[spell.key]
+	const spellType = SkillLibrary[spell.key]
 
 	async function onClick () {
-		actions.castSpell(idx)
+		actions.useSkill(idx)
 	}
 
 	const manaIcons : SpendableMana[] = []

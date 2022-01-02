@@ -22,19 +22,28 @@ export type Combatant = {
 	shield: number
 }
 
-export type SpellKey = 'fireball' | 'frost_shield' | 'lightning_strike' | 'soul_sap'
+export type SkillKey = 'fireball' | 'frost_shield' | 'lightning_strike' | 'soul_sap'
 
-export type Spell = {
+export type Skill = {
 	name: string
 	description: string
 	castTime: number
 	cooldown: number
-	cast: (game: Game) => Game
+	use: (game: Game) => ActionResult
 	manaCost: Partial<ManaPool>
 }
 
 export type SpellInstance = {
-	key: SpellKey // Maps to our spell definitions
+	key: SkillKey // Maps to our spell definitions
 	cooldown: number
 	casting: boolean
+}
+
+// When you use a skill or an enemy does a move, this is returned
+// Any key that exists here will be added/replaced into the game's state
+export type ActionResult = {
+	logs?: string[]
+	enemies?: boolean
+	player?: boolean
+	mana?: boolean
 }

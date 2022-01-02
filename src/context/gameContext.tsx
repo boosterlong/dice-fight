@@ -1,7 +1,7 @@
-import {Combatant, Game, GamePhase, SpellInstance, SpellKey} from "../types/game";
-import React, {useRef, useState} from "react";
+import {Combatant, Game, GamePhase, SpellInstance, SkillKey} from "../types/game";
+import React, {useEffect, useRef, useState} from "react";
 import {commaAndJoin, deductMana, timeout} from "../lib/helpers";
-import {SpellLibrary} from "../game/spells/spells";
+import {SkillLibrary} from "../game/skills/skills";
 import {Enemy} from "../types/enemies";
 import {newSkeleton} from "../game/enemies/enemies";
 import {ManaDie, ManaDieFace, ManaPool, ManaType} from "../types/mana-dice";
@@ -9,11 +9,13 @@ import {rndInt} from "../lib/rand";
 import {deductSpellMana, hasMana} from "../lib/spells";
 import {useStateRef} from "../lib/use-state-ref";
 import {isDead} from "../lib/combatants";
+import {getEnemyMove, redrawMove} from "../lib/enemies";
+import {MoveSetLibrary} from "../game/enemies/move-sets";
 
 type GameContext = {
 	state: Game,
 	actions: {
-		castSpell: (idx: number) => void
+		useSkill: (idx: number) => void
 		toggleDie: (idx: number) => void
 		rollManaDice: () => void
 		keepManaDice: () => void
@@ -116,7 +118,7 @@ function defaultGameContext () : Game {
 
 export const GameContext = React.createContext<GameContext>({
 	actions: {
-		castSpell: (idx: number) => {},
+		useSkill: (idx: number) => {},
 		toggleDie: (idx: number) => {},
 		rollManaDice: () => {},
 		keepManaDice: () => {},
@@ -149,6 +151,10 @@ export const GameProvider : React.FC = ({children}) => {
 		logs,
 	}
 
+	useEffect(() => {
+		redrawEnemyMoves()
+	}, [])
+
 	// If this value is true, we don't let the player do anything
 	// we lock things while we let animations show and the like
 	const lockInteractionRef = useRef(false)
@@ -159,7 +165,7 @@ export const GameProvider : React.FC = ({children}) => {
 		setLogs(copy)
 	}
 
-	async function castSpell (idx: number) {
+	async function useSkill (idx: number) {
 		if (lockInteractionRef.current) {
 			return
 		}
@@ -170,7 +176,7 @@ export const GameProvider : React.FC = ({children}) => {
 		if (!instance) {
 			throw new Error('no spell, bad!')
 		}
-		const st = SpellLibrary[instance.key]
+		const st = SkillLibrary[instance.key]
 
 		if (!hasMana(mana, st)) {
 			return
@@ -186,22 +192,31 @@ export const GameProvider : React.FC = ({children}) => {
 		setSpells(copy)
 
 		// Each spell has its own cast function that will change the game state
-		// TODO: Do something better than this. This is JSON stuff is nooby.
-		const gameCopy = JSON.parse(JSON.stringify(game))
-		const newGame = st.cast(gameCopy)
-		deductSpellMana(newGame.mana, st)
-		setMana({...newGame.mana})
+		const result = st.use(game)
+		deductSpellMana(game.mana, st)
+		setMana({...game.mana})
 		addLog(`You cast ${st.name}`)
+
+		if (result.logs) {
+			result.logs.forEach((log) => {
+				addLog(log)
+			})
+		}
 
 		await timeout(st.castTime)
 
 		// Update enemies from new game
-		setEnemies([...newGame.enemies])
+		if (result.enemies) {
+			setEnemies([...game.enemies])
+		}
 
 		// Player may have changed HP or shield
-		setPlayer({
-			...newGame.player
-		})
+		if (result.player) {
+			setPlayer({
+				...game.player
+			})
+
+		}
 
 		// Update all the spells again
 		const newCopy = [...copy]
@@ -326,18 +341,52 @@ export const GameProvider : React.FC = ({children}) => {
 	async function enemyTurn () {
 		lockInteractionRef.current = true
 		setPhase('enemies')
+
+		// Reset all their shields
+		let hasShield = false
+		enemies.forEach((e) => {
+			if (e.shield > 0) {
+				hasShield = true
+				e.shield = 0
+			}
+		})
+		if (hasShield) {
+			setEnemies([...enemies])
+			await timeout(500) // Time for animation of shield depleting
+		}
+
 		for (let i = 0; i < enemies.length; i++) {
-			const copy = [...enemies]
-			if (isDead(copy[i])) {
+			const enemy = enemies[i]
+			if (isDead(enemy)) {
 				continue
 			}
-			copy[i].acting = true
-			setEnemies(copy)
+			enemy.acting = true
+			setEnemies([...enemies])
+			const move = getEnemyMove(enemy)
+			const result = move.action(game, enemy)
+			result.logs?.forEach((log) => {
+				addLog(log)
+			})
+
+			if (result.player) {
+				setPlayer({
+					...game.player,
+				})
+			}
+
 			await timeout(1000)
-			copy[i].acting = false
-			setEnemies([...copy])
+			enemy.acting = false
+			setEnemies([...enemies])
 		}
 		await timeout(3000)
+	}
+
+	function redrawEnemyMoves () {
+		const copy = [...enemies].map((e) => {
+			redrawMove(e)
+			return e
+		})
+		setEnemies(copy)
 	}
 
 	async function newRound () {
@@ -358,6 +407,9 @@ export const GameProvider : React.FC = ({children}) => {
 			fire: Math.ceil(mana.fire/2),
 		})
 
+		// All enemies have their moves redrawn
+		redrawEnemyMoves()
+
 		setRerolls(DEFAULT_REROLLS+1) // Give you +1 since you're gonna lose another one in rollManaDice
 		rollManaDice(true)
 	}
@@ -365,7 +417,7 @@ export const GameProvider : React.FC = ({children}) => {
 	const provided = {
 		state: game,
 		actions: {
-			castSpell,
+			useSkill,
 			toggleDie,
 			rollManaDice,
 			keepManaDice,
