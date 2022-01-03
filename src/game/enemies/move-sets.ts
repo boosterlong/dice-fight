@@ -10,17 +10,28 @@ export type EnemyMove = {
 }
 
 function stabAction (game: Game, enemy: Enemy) : ActionResult {
-	const [dmg] = rndDice(1, 4)
+	let [dmg] = rndDice(1, 6)
+
+	let msg = `${enemy.name} stabbed you for ${dmg}`
+
+	if (game.mana.chaos === 0) {
+		const [extra] = rndDice(1,4)
+		msg += `+${extra}`
+		dmg += extra
+	}
+
 	dealDamage(game.player, dmg)
+	msg += ` damage`
+
 	return {
-		logs: [`${enemy.name} stabbed you for ${dmg} damage`],
+		logs: [msg],
 		player: true,
 	}
 }
 
 const stab : EnemyMove = {
 	name: 'Stab',
-	intent: `Deal 1d6 damage`,
+	intent: `Deal 1d6 damage. If you have no Chaos mana, deal +1d4 damage.`,
 	action: stabAction
 }
 
